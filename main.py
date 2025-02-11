@@ -4,15 +4,13 @@ from utils.data_generator import (
     generate_vehicle_data,
     generate_telematics_data,
     generate_iot_data,
-    generate_logistics_data,
-    generate_construction_data
+    generate_logistics_data
 )
 from utils.map_utils import create_vehicle_map, simulate_vehicle_movement
 from components.fleet_management import render_fleet_management
 from components.insurance_telematics import render_insurance_telematics
 from components.connected_cars import render_connected_cars
 from components.logistics import render_logistics
-from components.construction import render_construction
 import time
 
 st.set_page_config(
@@ -28,7 +26,7 @@ st.markdown("""
     .vehicle-icon {
         font-size: 24px;
         text-align: center;
-        transition: all 0.5s ease;
+        transition: all 0.3s ease;
     }
     .vehicle-icon.green { color: #00ff00; }
     .vehicle-icon.red { color: #ff0000; }
@@ -38,15 +36,15 @@ st.markdown("""
 
 # Initialize session state
 if 'vehicles_df' not in st.session_state:
-    st.session_state.vehicles_df = generate_vehicle_data()
+    st.session_state.vehicles_df = generate_vehicle_data(n_vehicles=10)  # Reduced number for better visualization
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
 if 'update_counter' not in st.session_state:
     st.session_state.update_counter = 0
 
-# Update vehicle positions every 2 seconds
+# Update vehicle positions every 1 second
 current_time = time.time()
-if current_time - st.session_state.last_update > 2:
+if current_time - st.session_state.last_update > 1:
     st.session_state.vehicles_df = simulate_vehicle_movement(st.session_state.vehicles_df)
     st.session_state.last_update = current_time
     st.session_state.update_counter += 1
@@ -59,8 +57,7 @@ tabs = st.tabs([
     "Fleet Management",
     "Insurance Telematics",
     "Connected Cars & IoT",
-    "Logistics & Supply Chain",
-    "Construction & Heavy Equipment"
+    "Logistics & Supply Chain"
 ])
 
 # Fleet Management Tab
@@ -73,13 +70,13 @@ with tabs[0]:
         folium_static(map_figure, height=400)
 
         # Add update counter
-        st.caption(f"Last updated: {st.session_state.update_counter} times")
+        st.caption(f"Map updates: {st.session_state.update_counter}")
 
     with col2:
         st.subheader("Quick Stats")
         active_vehicles = len(st.session_state.vehicles_df[st.session_state.vehicles_df['status'] == 'Active'])
         st.metric("Active Vehicles", active_vehicles)
-        total_distance = sum(st.session_state.vehicles_df['speed']) * 2 / 1000  # Rough estimate
+        total_distance = sum(st.session_state.vehicles_df['speed'].astype(float)) * 1 / 1000  # Rough estimate
         st.metric("Total Distance Today", f"{total_distance:.2f} km")
 
     render_fleet_management(st.session_state.vehicles_df)
@@ -98,11 +95,6 @@ with tabs[2]:
 with tabs[3]:
     logistics_data = generate_logistics_data()
     render_logistics(logistics_data)
-
-# Construction & Heavy Equipment Tab
-with tabs[4]:
-    construction_data = generate_construction_data()
-    render_construction(construction_data)
 
 # Add footer
 st.markdown("---")

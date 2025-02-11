@@ -15,7 +15,7 @@ def create_vehicle_map(vehicles_df):
         # Create a custom icon with rotation based on direction
         icon_html = f'''
             <div style="transform: rotate({vehicle['direction']}deg);">
-                🚛
+                <span style="font-size: 24px;">🚛</span>
             </div>
         '''
 
@@ -35,7 +35,7 @@ def create_vehicle_map(vehicles_df):
 
         # Add custom icon marker
         folium.Marker(
-            [vehicle['lat'], vehicle['lon']],
+            [float(vehicle['lat']), float(vehicle['lon'])],  # Convert to float explicitly
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.DivIcon(
                 html=icon_html,
@@ -52,20 +52,25 @@ def simulate_vehicle_movement(vehicles_df):
     # Update vehicle positions based on their speed and direction
     for idx in vehicles_df.index:
         if vehicles_df.loc[idx, 'status'] == 'Active':
-            speed_factor = vehicles_df.loc[idx, 'speed'] / 1000  # Convert speed to coordinate changes
-            direction_rad = radians(vehicles_df.loc[idx, 'direction'])
+            # Convert to float explicitly
+            speed = float(vehicles_df.loc[idx, 'speed'])
+            speed_factor = speed / 1000  # Convert speed to coordinate changes
+            direction_rad = radians(float(vehicles_df.loc[idx, 'direction']))
 
             # Calculate new position
-            vehicles_df.loc[idx, 'lat'] += speed_factor * cos(direction_rad)
-            vehicles_df.loc[idx, 'lon'] += speed_factor * sin(direction_rad)
+            lat = float(vehicles_df.loc[idx, 'lat'])
+            lon = float(vehicles_df.loc[idx, 'lon'])
+
+            vehicles_df.at[idx, 'lat'] = lat + speed_factor * cos(direction_rad)
+            vehicles_df.at[idx, 'lon'] = lon + speed_factor * sin(direction_rad)
 
             # Randomly change direction occasionally
             if np.random.random() < 0.2:  # 20% chance to change direction
-                vehicles_df.loc[idx, 'direction'] += np.random.uniform(-20, 20)
-                vehicles_df.loc[idx, 'direction'] %= 360  # Keep direction between 0 and 360
+                new_direction = float(vehicles_df.loc[idx, 'direction']) + np.random.uniform(-20, 20)
+                vehicles_df.at[idx, 'direction'] = new_direction % 360
 
             # Update speed randomly
-            vehicles_df.loc[idx, 'speed'] += np.random.uniform(-5, 5)
-            vehicles_df.loc[idx, 'speed'] = np.clip(vehicles_df.loc[idx, 'speed'], 0, 120)
+            new_speed = speed + np.random.uniform(-5, 5)
+            vehicles_df.at[idx, 'speed'] = np.clip(new_speed, 0, 120)
 
     return vehicles_df
