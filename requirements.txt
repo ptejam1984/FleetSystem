@@ -1,0 +1,5 @@
+folium>=0.19.4
+plotly>=6.0.0
+streamlit-folium>=0.24.0
+streamlit>=1.42.0
+faker>=36.1.0
