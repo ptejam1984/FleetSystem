@@ -62,12 +62,12 @@ def simulate_vehicle_movement(vehicles_df, speed_multiplier=1.0):
 
     # Major UK cities for reference points
     uk_cities = [
-        {'lat': 51.5074, 'lon': -0.1278},  # London
-        {'lat': 53.4808, 'lon': -2.2426},  # Manchester
-        {'lat': 52.4862, 'lon': -1.8904},  # Birmingham
-        {'lat': 53.8008, 'lon': -1.5491},  # Leeds
-        {'lat': 55.8642, 'lon': -4.2518},  # Glasgow
-        {'lat': 53.4084, 'lon': -2.9916},  # Liverpool
+        {'name': 'London', 'lat': 51.5074, 'lon': -0.1278},
+        {'name': 'Manchester', 'lat': 53.4808, 'lon': -2.2426},
+        {'name': 'Birmingham', 'lat': 52.4862, 'lon': -1.8904},
+        {'name': 'Leeds', 'lat': 53.8008, 'lon': -1.5491},
+        {'name': 'Glasgow', 'lat': 55.8642, 'lon': -4.2518},
+        {'name': 'Liverpool', 'lat': 53.4084, 'lon': -2.9916}
     ]
 
     # Update vehicle positions based on their speed and direction
@@ -76,37 +76,34 @@ def simulate_vehicle_movement(vehicles_df, speed_multiplier=1.0):
             # Convert to float explicitly
             speed = float(vehicles_df.loc[idx, 'speed'])
             # Increased base movement speed and apply multiplier
-            speed_factor = (speed / 25.0) * speed_multiplier  # More significant movement
-            direction_rad = radians(float(vehicles_df.loc[idx, 'direction']))
+            speed_factor = (speed / 25.0) * speed_multiplier * 0.1  # More significant movement
 
-            # Calculate new position
             lat = float(vehicles_df.loc[idx, 'lat'])
             lon = float(vehicles_df.loc[idx, 'lon'])
+            direction_rad = radians(float(vehicles_df.loc[idx, 'direction']))
 
-            new_lat = lat + speed_factor * cos(direction_rad) * 0.1
-            new_lon = lon + speed_factor * sin(direction_rad) * 0.1
+            # Calculate new position with larger movement
+            new_lat = lat + speed_factor * cos(direction_rad)
+            new_lon = lon + speed_factor * sin(direction_rad)
 
-            # Check if new position would be in water or out of bounds
+            # Check if new position would be outside mainland UK
             if (new_lat < uk_bounds['lat_min'] or new_lat > uk_bounds['lat_max'] or 
                 new_lon < uk_bounds['lon_min'] or new_lon > uk_bounds['lon_max']):
-                # If vehicle would go out of bounds, redirect to nearest city
-                nearest_city = min(uk_cities, key=lambda c: 
-                    abs(c['lat'] - lat) + abs(c['lon'] - lon))
+                # Find nearest city
+                nearest_city = min(uk_cities, 
+                    key=lambda c: abs(c['lat'] - lat) + abs(c['lon'] - lon))
+
+                # Update current city
+                vehicles_df.at[idx, 'current_city'] = nearest_city['name']
 
                 # Calculate direction to nearest city
-                city_direction = np.arctan2(
-                    nearest_city['lon'] - lon,
-                    nearest_city['lat'] - lat
-                )
-                vehicles_df.at[idx, 'direction'] = np.degrees(city_direction)
+                delta_lon = nearest_city['lon'] - lon
+                delta_lat = nearest_city['lat'] - lat
+                new_direction = np.degrees(np.arctan2(delta_lon, delta_lat))
+                vehicles_df.at[idx, 'direction'] = new_direction
             else:
                 vehicles_df.at[idx, 'lat'] = new_lat
                 vehicles_df.at[idx, 'lon'] = new_lon
-
-            # Randomly change direction occasionally (less frequently)
-            if np.random.random() < 0.05:  # 5% chance to change direction
-                new_direction = float(vehicles_df.loc[idx, 'direction']) + np.random.uniform(-45, 45)
-                vehicles_df.at[idx, 'direction'] = new_direction % 360
 
             # Update speed randomly within reasonable bounds
             new_speed = speed + np.random.uniform(-5, 5)
