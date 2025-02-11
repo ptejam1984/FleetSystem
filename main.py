@@ -20,31 +20,37 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for vehicle icons
+# Custom CSS for vehicle icons with animation
 st.markdown("""
     <style>
     .vehicle-icon {
-        font-size: 24px;
+        font-size: 36px !important;  /* Increased size significantly */
         text-align: center;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;  /* Faster transition */
+        transform-origin: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px !important;  /* Explicit width */
+        height: 50px !important;  /* Explicit height */
     }
-    .vehicle-icon.green { color: #00ff00; }
-    .vehicle-icon.red { color: #ff0000; }
-    .vehicle-icon.orange { color: #ffa500; }
+    .vehicle-icon.green { color: #00ff00; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+    .vehicle-icon.red { color: #ff0000; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+    .vehicle-icon.orange { color: #ffa500; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
     </style>
 """, unsafe_allow_html=True)
 
 # Initialize session state
 if 'vehicles_df' not in st.session_state:
-    st.session_state.vehicles_df = generate_vehicle_data(n_vehicles=20)  # Increased number of vehicles
+    st.session_state.vehicles_df = generate_vehicle_data(n_vehicles=20)
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
 if 'update_counter' not in st.session_state:
     st.session_state.update_counter = 0
 
-# Update vehicle positions every 0.5 seconds (increased frequency)
+# Update vehicle positions every 0.2 seconds (increased frequency)
 current_time = time.time()
-if current_time - st.session_state.last_update > 0.5:
+if current_time - st.session_state.last_update > 0.2:  # Even faster updates
     st.session_state.vehicles_df = simulate_vehicle_movement(st.session_state.vehicles_df)
     st.session_state.last_update = current_time
     st.session_state.update_counter += 1
@@ -67,7 +73,7 @@ with tabs[0]:
         # Display the map
         st.subheader("Live Vehicle Tracking")
         map_figure = create_vehicle_map(st.session_state.vehicles_df)
-        folium_static(map_figure, height=400)
+        folium_static(map_figure, height=500)  # Increased map height
 
         # Add update counter
         st.caption(f"Map updates: {st.session_state.update_counter}")
@@ -76,7 +82,7 @@ with tabs[0]:
         st.subheader("Quick Stats")
         active_vehicles = len(st.session_state.vehicles_df[st.session_state.vehicles_df['status'] == 'Active'])
         st.metric("Active Vehicles", active_vehicles)
-        total_distance = sum(st.session_state.vehicles_df['speed'].astype(float)) * 0.5 / 1000  # Rough estimate
+        total_distance = sum(st.session_state.vehicles_df['speed'].astype(float)) * 0.2 / 1000  # Adjusted for new update frequency
         st.metric("Total Distance Today", f"{total_distance:.2f} km")
 
     render_fleet_management(st.session_state.vehicles_df)

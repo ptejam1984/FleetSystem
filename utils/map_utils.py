@@ -42,9 +42,9 @@ def create_vehicle_map(vehicles_df):
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.DivIcon(
                 html=f'<div class="vehicle-icon {icon_color}">🚛</div>',
-                icon_size=(30, 30),
-                icon_anchor=(15, 15),
-                popup_anchor=(0, -15),
+                icon_size=(50, 50),  # Increased size
+                icon_anchor=(25, 25),  # Adjusted for new size
+                popup_anchor=(0, -25),  # Adjusted for new size
                 class_name=f'vehicle-icon {icon_color}'
             )
         ).add_to(m)
@@ -65,7 +65,7 @@ def simulate_vehicle_movement(vehicles_df):
         if vehicles_df.loc[idx, 'status'] == 'Active':
             # Convert to float explicitly
             speed = float(vehicles_df.loc[idx, 'speed'])
-            speed_factor = speed / 100  # Increased speed factor (was 1000)
+            speed_factor = speed / 50  # Increased speed factor (was 100)
             direction_rad = radians(float(vehicles_df.loc[idx, 'direction']))
 
             # Calculate new position
