@@ -47,11 +47,28 @@ if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
 if 'update_counter' not in st.session_state:
     st.session_state.update_counter = 0
+if 'speed_multiplier' not in st.session_state:
+    st.session_state.speed_multiplier = 1.0
+
+# Sidebar controls
+st.sidebar.title("Map Controls")
+speed_multiplier = st.sidebar.slider(
+    "Vehicle Movement Speed",
+    min_value=0.1,
+    max_value=5.0,
+    value=st.session_state.speed_multiplier,
+    step=0.1,
+    help="Adjust the speed of vehicle movement on the map"
+)
+st.session_state.speed_multiplier = speed_multiplier
 
 # Update vehicle positions every 0.2 seconds (increased frequency)
 current_time = time.time()
 if current_time - st.session_state.last_update > 0.2:  # Even faster updates
-    st.session_state.vehicles_df = simulate_vehicle_movement(st.session_state.vehicles_df)
+    st.session_state.vehicles_df = simulate_vehicle_movement(
+        st.session_state.vehicles_df,
+        speed_multiplier=st.session_state.speed_multiplier
+    )
     st.session_state.last_update = current_time
     st.session_state.update_counter += 1
 
@@ -75,8 +92,8 @@ with tabs[0]:
         map_figure = create_vehicle_map(st.session_state.vehicles_df)
         folium_static(map_figure, height=500)  # Increased map height
 
-        # Add update counter
-        st.caption(f"Map updates: {st.session_state.update_counter}")
+        # Add update counter and current speed
+        st.caption(f"Map updates: {st.session_state.update_counter} | Speed multiplier: {st.session_state.speed_multiplier}x")
 
     with col2:
         st.subheader("Quick Stats")

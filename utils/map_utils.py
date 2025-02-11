@@ -51,7 +51,7 @@ def create_vehicle_map(vehicles_df):
 
     return m
 
-def simulate_vehicle_movement(vehicles_df):
+def simulate_vehicle_movement(vehicles_df, speed_multiplier=1.0):
     # UK boundary coordinates
     uk_bounds = {
         'lat_min': 50.10319,
@@ -65,7 +65,7 @@ def simulate_vehicle_movement(vehicles_df):
         if vehicles_df.loc[idx, 'status'] == 'Active':
             # Convert to float explicitly
             speed = float(vehicles_df.loc[idx, 'speed'])
-            speed_factor = speed / 50  # Increased speed factor (was 100)
+            speed_factor = (speed / 50) * speed_multiplier  # Apply speed multiplier
             direction_rad = radians(float(vehicles_df.loc[idx, 'direction']))
 
             # Calculate new position
