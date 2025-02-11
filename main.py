@@ -36,15 +36,15 @@ st.markdown("""
 
 # Initialize session state
 if 'vehicles_df' not in st.session_state:
-    st.session_state.vehicles_df = generate_vehicle_data(n_vehicles=10)  # Reduced number for better visualization
+    st.session_state.vehicles_df = generate_vehicle_data(n_vehicles=20)  # Increased number of vehicles
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
 if 'update_counter' not in st.session_state:
     st.session_state.update_counter = 0
 
-# Update vehicle positions every 1 second
+# Update vehicle positions every 0.5 seconds (increased frequency)
 current_time = time.time()
-if current_time - st.session_state.last_update > 1:
+if current_time - st.session_state.last_update > 0.5:
     st.session_state.vehicles_df = simulate_vehicle_movement(st.session_state.vehicles_df)
     st.session_state.last_update = current_time
     st.session_state.update_counter += 1
@@ -76,7 +76,7 @@ with tabs[0]:
         st.subheader("Quick Stats")
         active_vehicles = len(st.session_state.vehicles_df[st.session_state.vehicles_df['status'] == 'Active'])
         st.metric("Active Vehicles", active_vehicles)
-        total_distance = sum(st.session_state.vehicles_df['speed'].astype(float)) * 1 / 1000  # Rough estimate
+        total_distance = sum(st.session_state.vehicles_df['speed'].astype(float)) * 0.5 / 1000  # Rough estimate
         st.metric("Total Distance Today", f"{total_distance:.2f} km")
 
     render_fleet_management(st.session_state.vehicles_df)

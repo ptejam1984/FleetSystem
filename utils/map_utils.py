@@ -21,13 +21,6 @@ def create_vehicle_map(vehicles_df):
 
     # Add vehicles to the map
     for _, vehicle in vehicles_df.iterrows():
-        # Create a custom icon with rotation based on direction
-        icon_html = f'''
-            <div style="transform: rotate({vehicle['direction']}deg);">
-                <span style="font-size: 24px;">🚛</span>
-            </div>
-        '''
-
         # Create popup content
         popup_html = f"""
             <div style='width: 200px'>
@@ -48,7 +41,7 @@ def create_vehicle_map(vehicles_df):
             [float(vehicle['lat']), float(vehicle['lon'])],  # Convert to float explicitly
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.DivIcon(
-                html=icon_html,
+                html=f'<div class="vehicle-icon {icon_color}">🚛</div>',
                 icon_size=(30, 30),
                 icon_anchor=(15, 15),
                 popup_anchor=(0, -15),
@@ -72,7 +65,7 @@ def simulate_vehicle_movement(vehicles_df):
         if vehicles_df.loc[idx, 'status'] == 'Active':
             # Convert to float explicitly
             speed = float(vehicles_df.loc[idx, 'speed'])
-            speed_factor = speed / 1000  # Convert speed to coordinate changes
+            speed_factor = speed / 100  # Increased speed factor (was 1000)
             direction_rad = radians(float(vehicles_df.loc[idx, 'direction']))
 
             # Calculate new position
@@ -92,12 +85,12 @@ def simulate_vehicle_movement(vehicles_df):
                 vehicles_df.at[idx, 'lon'] = new_lon
 
             # Randomly change direction occasionally
-            if np.random.random() < 0.2:  # 20% chance to change direction
-                new_direction = float(vehicles_df.loc[idx, 'direction']) + np.random.uniform(-20, 20)
+            if np.random.random() < 0.1:  # Reduced chance to change direction
+                new_direction = float(vehicles_df.loc[idx, 'direction']) + np.random.uniform(-30, 30)
                 vehicles_df.at[idx, 'direction'] = new_direction % 360
 
             # Update speed randomly
             new_speed = speed + np.random.uniform(-5, 5)
-            vehicles_df.at[idx, 'speed'] = np.clip(new_speed, 0, 120)
+            vehicles_df.at[idx, 'speed'] = np.clip(new_speed, 40, 120)  # Increased minimum speed
 
     return vehicles_df
